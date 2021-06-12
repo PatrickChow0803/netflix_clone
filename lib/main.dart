@@ -1,5 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:get/get.dart';
+import 'package:get/get_state_manager/get_state_manager.dart';
+import 'package:netflix_clone/core/models/now_showing_model.dart';
+import 'package:netflix_clone/core/services/api.dart';
+
+import 'core/presentation/movie_card.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
@@ -20,48 +27,99 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
-
   final String title;
+  const MyHomePage({
+    Key? key,
+    required this.title,
+  }) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  late MovieController movieController;
+  late Future<NowShowingModel> nowShowingFuture;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  void _setUp() {
+    movieController = Get.put(MovieController());
+    nowShowingFuture = () {
+      return movieController.fetchShowingMovies();
+    }();
+  }
+
+  @override
+  void initState() {
+    _setUp();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+    return Container(
+      // height: MediaQuery.of(context).size.height,
+      // width: MediaQuery.of(context).size.width,
+      color: Colors.white,
+      child: SafeArea(
+        child: Scaffold(
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            // mainAxisAlignment: MainAxisAlignment.center,
+
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Now Showing',
+                  textAlign: TextAlign.end,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline5!
+                      .copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                height: 200,
+                child: FutureBuilder(
+                    future: nowShowingFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+
+                      final NowShowingModel nowShowing =
+                          snapshot.data as NowShowingModel;
+
+                      return ListView.builder(
+                        itemBuilder: (context, index) {
+                          final Result movie = nowShowing.results[index];
+                          return movieItem(movie);
+                        },
+                        itemCount: 20,
+                        scrollDirection: Axis.horizontal,
+                      );
+                    }),
+              )
+            ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
     );
+  }
+}
+
+class MovieController extends GetxController {
+  // fetch now showing
+  Future<NowShowingModel> fetchShowingMovies() async {
+    try {
+      final result = await Api.get('now_playing');
+      return compute(nowShowingModelFromJson, result.body);
+      // print(result.body)
+    } catch (e) {
+      throw 'Error in fetchShowingMovies(): $e';
+    }
   }
 }
