@@ -7,7 +7,7 @@ class Api {
 
   static Future<Response> get(String path) async {
     try {
-      print('$uri/$path?api_key=$APIKEY');
+      // print('$uri/$path?api_key=$APIKEY');
       final request = Request('GET', Uri.parse('$uri/$path?api_key=$APIKEY'));
 
       final Response response = await Response.fromStream(
