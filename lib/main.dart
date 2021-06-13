@@ -98,11 +98,48 @@ class _MyHomePageState extends State<MyHomePage> {
                           final Result movie = nowShowing.results[index];
                           return movieItem(movie);
                         },
-                        itemCount: 20,
+                        itemCount: nowShowing.totalResults - 1,
                         scrollDirection: Axis.horizontal,
                       );
                     }),
-              )
+              ),
+              SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Popular',
+                  textAlign: TextAlign.end,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline5!
+                      .copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                height: 200,
+                child: FutureBuilder(
+                    future: nowShowingFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+
+                      final NowShowingModel nowShowing =
+                          snapshot.data as NowShowingModel;
+
+                      return ListView.builder(
+                        itemBuilder: (context, index) {
+                          final Result movie = nowShowing.results[index];
+                          return movieItem(movie);
+                        },
+                        itemCount: nowShowing.totalResults - 1,
+                        scrollDirection: Axis.horizontal,
+                      );
+                    }),
+              ),
             ],
           ),
         ),

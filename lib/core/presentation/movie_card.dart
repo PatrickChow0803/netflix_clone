@@ -8,14 +8,43 @@ Widget movieItem(Result movie) {
     child: ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        width: 150,
+        width: 300,
         child: Stack(children: [
-          Image.network('${ConstantStrings.imageUrl}${movie.backdropPath}'),
+          Container(
+              // LayoutBuilder here because I want to get the dimensions of the parent widget
+              // to make the image take up all of the container's dimensions
+              child: LayoutBuilder(
+            builder: (context, constraints) => Image.network(
+              '${ConstantStrings.imageUrl}${movie.backdropPath}',
+              fit: BoxFit.cover,
+              height: constraints.maxHeight,
+              width: constraints.maxWidth,
+            ),
+          )),
           Align(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                movie.title,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      movie.title,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          backgroundColor: Colors.black,
+                          fontSize: 16),
+                    ),
+                  ),
+                  Text(
+                    '${movie.voteAverage}',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        backgroundColor: Colors.black,
+                        fontSize: 16),
+                  ),
+                ],
               ),
             ),
             alignment: Alignment.bottomLeft,
