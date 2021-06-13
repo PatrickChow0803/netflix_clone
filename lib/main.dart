@@ -40,11 +40,15 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late MovieController movieController;
   late Future<NowShowingModel> nowShowingFuture;
+  late Future<NowShowingModel> popularFuture;
 
   void _setUp() {
     movieController = Get.put(MovieController());
     nowShowingFuture = () {
       return movieController.fetchShowingMovies();
+    }();
+    popularFuture = () {
+      return movieController.fetchPopularMovies();
     }();
   }
 
@@ -153,6 +157,16 @@ class MovieController extends GetxController {
   Future<NowShowingModel> fetchShowingMovies() async {
     try {
       final result = await Api.get('now_playing');
+      return compute(nowShowingModelFromJson, result.body);
+      // print(result.body)
+    } catch (e) {
+      throw 'Error in fetchShowingMovies(): $e';
+    }
+  }
+
+  Future<NowShowingModel> fetchPopularMovies() async {
+    try {
+      final result = await Api.get('popular');
       return compute(nowShowingModelFromJson, result.body);
       // print(result.body)
     } catch (e) {
